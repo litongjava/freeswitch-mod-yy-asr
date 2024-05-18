@@ -654,13 +654,12 @@ static switch_status_t yyasr_load_config(void) {
   /* Make the final asr or the nlu api url */
   if (globals.nlu == SWITCH_TRUE) {
     // @Length length for ?api_key=
-    api_base = "http://127.0.0.1:10013/bill-asr-server-agent/api/semantics/";
-    url_len = strlen(api_base);
+    url_len = strlen(globals.api_base);
     url_len += 9;                           // @Length
     url_len += strlen(globals.api_key);     // bytes for api_key
 
     globals.api_base = (char *) switch_core_alloc(globals.pool, url_len + 1);
-    strcat(globals.api_base, api_base);
+    // strcat(globals.api_base, api_base);
     strcat(globals.api_base, "?api_key=");
     strcat(globals.api_base, globals.api_key);
   } else {
