@@ -607,6 +607,7 @@ static switch_status_t yyasr_load_config(void) {
       char *val = (char *) switch_xml_attr_soft(param, "value");
       if (strcasecmp(var, "api-base") == 0) {
         globals.api_base=switch_core_strdup(globals.pool, val);
+        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "yyasr.api_base=%s\n", globals.api_base);
       }else if (strcasecmp(var, "api-key") == 0) {
         globals.api_key = switch_core_strdup(globals.pool, val);
       } else if (strcasecmp(var, "engine") == 0) {
@@ -651,22 +652,29 @@ static switch_status_t yyasr_load_config(void) {
     switch_xml_free(xml);
   }
 
+  char *url = NULL;
   /* Make the final asr or the nlu api url */
   if (globals.nlu == SWITCH_TRUE) {
-    // @Length length for ?api_key=
-    url_len = strlen(globals.api_base);
-    url_len += 9;                           // @Length
-    url_len += strlen(globals.api_key);     // bytes for api_key
+    // Calculate required length for the new URL 9 length for ?api_key=
+    url_len = strlen(globals.api_base) + 9 + strlen(globals.api_key);  // Total length needed
+    url_len += 1; // For null terminator
 
-    globals.api_base = (char *) switch_core_alloc(globals.pool, url_len + 1);
-    // strcat(globals.api_base, api_base);
-    strcat(globals.api_base, "?api_key=");
-    strcat(globals.api_base, globals.api_key);
+    // Allocate memory only once for the new URL
+    char *url = (char *) switch_core_alloc(globals.pool, url_len);
+
+    // Copy the original base URL
+    strcpy(url, globals.api_base);
+
+    // Concatenate the query string
+    strcat(url, "?api_key=");
+    strcat(url, globals.api_key);
+
+    // Update globals.api_base with url
+    globals.api_base = url;
     switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "yyasr.api_base=%s\n", globals.api_base);
   } else {
     // @Length length for ?api_key=&engine=&model=&vad=false&user_id=fs_sdk_9
-    api_base = "http://127.0.0.1:10013/bill-asr-server-agent/api/acoustics/asr/";
-    url_len = strlen(api_base);
+    url_len = strlen(globals.api_base);
     url_len += 51;                          // @Length
     url_len += strlen(globals.engine);
     url_len += strlen(globals.model);
@@ -710,7 +718,7 @@ SWITCH_STANDARD_APP(get_user_id_function) {
   char* channel_uuid = switch_channel_get_uuid(channel);
   globals.userId = channel_name;
   globals.sessionId = channel_uuid;
-  //switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "%s %s Start study\n", channel_name, channel_uuid);
+  switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "%s %s Start \n", channel_name, channel_uuid);
 }
 
 SWITCH_MODULE_LOAD_FUNCTION(mod_yyasr_load) {

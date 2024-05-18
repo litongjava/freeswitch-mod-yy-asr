@@ -52,7 +52,7 @@ session:set_tts_params("yytts", "zhilingf");
 session:setInputCallback("onInput");
 -- Sleep a little bit to get media time to be fully up
 session:sleep(100);
-session:speak("我是合光机器人智能的电话系统,小信，请说");
+session:speak("我是智能客服电话系统Emma，请问你有什么问题");
 session:execute("detect_speech", "yyasr directory directory");
 local caller_id_number = session:getVariable("caller_id_number");
 
