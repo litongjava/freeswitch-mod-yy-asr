@@ -1,6 +1,7 @@
 <configuration name="yyasr.conf" description="yuanyu asr configuration">
   <settings>
-    <param name="app-key" value="get-the-app-key-from-yuanyu.ai-console"/>
+    <param name="api-base" value="http://192.168.3.8:8888/api/v1/asr"/>
+    <param name="api-key" value="api-key"/>
     <param name="engine" value="aispeech"/>
     <param name="model" value="comm"/>
     <param name="vad" value="true"/>

@@ -16,8 +16,8 @@ static switch_mutex_t *MUTEX = NULL;
 static switch_event_node_t *NODE = NULL;
 
 static struct {
-  char *api_url;
-  char *app_key;
+  char *api_base;
+  char *api_key;
   char *engine;
   char *model;
   switch_bool_t vad;
@@ -141,7 +141,7 @@ static switch_bool_t recognition_by_rest_api(yyasr_t *yyasr) {
 
   //add userId and sessionId
   char *param = "&userId=&sessionId=&codec=&rate=";
-  int url_len = strlen(globals.api_url);
+  int url_len = strlen(globals.api_base);
   url_len += strlen(param);
   url_len += strlen(globals.userId);
   url_len += strlen(globals.sessionId);
@@ -149,7 +149,7 @@ static switch_bool_t recognition_by_rest_api(yyasr_t *yyasr) {
   url_len += strlen(str_rate);
 
   char *url = (char *) switch_core_alloc(globals.pool, url_len + 1);
-  strcat(url, globals.api_url);
+  strcat(url, globals.api_base);
   strcat(url, "&userId=");
   strcat(url, globals.userId);
   strcat(url, "&sessionId=");
@@ -431,8 +431,8 @@ static switch_status_t yyasr_asr_feed(switch_asr_handle_t *ah, void *data, unsig
           fclose(stream);
         }
       } else {
-//        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "wav_file_dir %s\n", globals.wav_file_dir);
-//        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "WAVE_DIR_MAX_LENGTH %d\n", WAVE_DIR_MAX_LENGTH);
+       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "wav_file_dir %s\n", globals.wav_file_dir);
+       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "WAVE_DIR_MAX_LENGTH %d\n", WAVE_DIR_MAX_LENGTH);
       }
 
       switch_buffer_zero(yyasr->text_buffer);
@@ -572,7 +572,7 @@ static switch_status_t yyasr_load_config(void) {
   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
   /* default the settings*/
-  globals.app_key = "";
+  globals.api_key = "";
   globals.engine = "aispeech";
   globals.model = "comm";
   globals.vad = SWITCH_TRUE;
@@ -605,8 +605,10 @@ static switch_status_t yyasr_load_config(void) {
     for (param = switch_xml_child(settings, "param"); param; param = param->next) {
       char *var = (char *) switch_xml_attr_soft(param, "name");
       char *val = (char *) switch_xml_attr_soft(param, "value");
-      if (strcasecmp(var, "app-key") == 0) {
-        globals.app_key = switch_core_strdup(globals.pool, val);
+      if (strcasecmp(var, "api-base") == 0) {
+        globals.api_base=switch_core_strdup(globals.pool, val);
+      }else if (strcasecmp(var, "api-key") == 0) {
+        globals.api_key = switch_core_strdup(globals.pool, val);
       } else if (strcasecmp(var, "engine") == 0) {
         globals.engine = switch_core_strdup(globals.pool, val);
       } else if (strcasecmp(var, "model") == 0) {
@@ -651,39 +653,39 @@ static switch_status_t yyasr_load_config(void) {
 
   /* Make the final asr or the nlu api url */
   if (globals.nlu == SWITCH_TRUE) {
-    // @Length length for ?app_key=
+    // @Length length for ?api_key=
     api_base = "http://127.0.0.1:10013/bill-asr-server-agent/api/semantics/";
     url_len = strlen(api_base);
     url_len += 9;                           // @Length
-    url_len += strlen(globals.app_key);     // bytes for app_key
+    url_len += strlen(globals.api_key);     // bytes for api_key
 
-    globals.api_url = (char *) switch_core_alloc(globals.pool, url_len + 1);
-    strcat(globals.api_url, api_base);
-    strcat(globals.api_url, "?app_key=");
-    strcat(globals.api_url, globals.app_key);
+    globals.api_base = (char *) switch_core_alloc(globals.pool, url_len + 1);
+    strcat(globals.api_base, api_base);
+    strcat(globals.api_base, "?api_key=");
+    strcat(globals.api_base, globals.api_key);
   } else {
-    // @Length length for ?app_key=&engine=&model=&vad=false&user_id=fs_sdk_9
+    // @Length length for ?api_key=&engine=&model=&vad=false&user_id=fs_sdk_9
     api_base = "http://127.0.0.1:10013/bill-asr-server-agent/api/acoustics/asr/";
     url_len = strlen(api_base);
     url_len += 51;                          // @Length
     url_len += strlen(globals.engine);
     url_len += strlen(globals.model);
-    url_len += strlen(globals.app_key);     // bytes for app_key
+    url_len += strlen(globals.api_key);     // bytes for api_key
 
-    globals.api_url = (char *) switch_core_alloc(globals.pool, url_len + 1);
-    strcat(globals.api_url, api_base);
-    strcat(globals.api_url, "?app_key=");
-    strcat(globals.api_url, globals.app_key);
-    strcat(globals.api_url, "&engine=");
-    strcat(globals.api_url, globals.engine);
-    strcat(globals.api_url, "&model=");
-    strcat(globals.api_url, globals.model);
-    strcat(globals.api_url, "&vad=");
-    strcat(globals.api_url, globals.vad ? "true" : "false");
-    strcat(globals.api_url, "&user_id=fs_sdk_9");
+    globals.api_base = (char *) switch_core_alloc(globals.pool, url_len + 1);
+    strcat(globals.api_base, api_base);
+    strcat(globals.api_base, "?api_key=");
+    strcat(globals.api_base, globals.api_key);
+    strcat(globals.api_base, "&engine=");
+    strcat(globals.api_base, globals.engine);
+    strcat(globals.api_base, "&model=");
+    strcat(globals.api_base, globals.model);
+    strcat(globals.api_base, "&vad=");
+    strcat(globals.api_base, globals.vad ? "true" : "false");
+    strcat(globals.api_base, "&user_id=fs_sdk_9");
   }
 
-  switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "yyasr.api_url=%s\n", globals.api_url);
+  switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "yyasr.api_base=%s\n", globals.api_base);
 
   return status;
 }
