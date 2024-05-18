@@ -662,6 +662,7 @@ static switch_status_t yyasr_load_config(void) {
     // strcat(globals.api_base, api_base);
     strcat(globals.api_base, "?api_key=");
     strcat(globals.api_base, globals.api_key);
+    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "yyasr.api_base=%s\n", globals.api_base);
   } else {
     // @Length length for ?api_key=&engine=&model=&vad=false&user_id=fs_sdk_9
     api_base = "http://127.0.0.1:10013/bill-asr-server-agent/api/acoustics/asr/";
@@ -682,9 +683,10 @@ static switch_status_t yyasr_load_config(void) {
     strcat(globals.api_base, "&vad=");
     strcat(globals.api_base, globals.vad ? "true" : "false");
     strcat(globals.api_base, "&user_id=fs_sdk_9");
+    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "yyasr.api_base=%s\n", globals.api_base);
   }
 
-  switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "yyasr.api_base=%s\n", globals.api_base);
+  
 
   return status;
 }
